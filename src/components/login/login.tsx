@@ -26,7 +26,7 @@ const Login = (props: { setShowLoading: any }) => {
     name: "",
   });
   const [inputType, setInputType] = React.useState("password");
-  const from = useLocation().state?.from || "/users";
+  const from = useLocation().state?.from || "/home";
   const [formType, setFormType] = useState("login");
   const [formError, setFormError] = useState("");
 
@@ -47,11 +47,8 @@ const Login = (props: { setShowLoading: any }) => {
       validName = values.name.length > 2;
     }
     if (validEmail && validPassword && validConfirmPassword && validName) {
-      console.log("valid");
-      try{
-      let response: any = await fetch(
-        `${API_URL}/user/${formType}`,
-        {
+      try {
+        let response: any = await fetch(`${API_URL}/user/${formType}`, {
           method: "POST",
           headers: {
             "Content-Type": "application/json",
@@ -64,31 +61,28 @@ const Login = (props: { setShowLoading: any }) => {
               name: values.name,
             }),
           }),
+        });
+        response = await response.json();
+        if (response.success) {
+          signin(response.data);
+          setShowLoading && setShowLoading(true);
+          setTimeout(() => {
+            
+              navigate(from);
+            setShowLoading && setShowLoading(false);
+          }, 1000);
+        } else {
+          setFormError(response.message);
         }
-      );
-      response = await response.json();
-      console.log(response);
-      if (response.success) {
-        signin({ ...response });
-        setShowLoading && setShowLoading(true);
-        setTimeout(() => {
-          if (user) {
-            navigate(from);
-          }
-          setShowLoading && setShowLoading(false);
-        }, 1000);
-      } else {
-        setFormError(response.message);
+      } catch (error) {
+        console.log(error);
+        setFormError("An error occurred. Please try again later");
       }
-    } catch (error) {
-      console.log(error);
-      setFormError("An error occurred. Please try again later");
-    }
     } else {
       setErrors({
-        email:validEmail ? "" : "Invalid email",
-        password:validPassword ? "" : "Invalid password",
-        confirmPassword:validConfirmPassword ? "" : "Passwords do not match",
+        email: validEmail ? "" : "Invalid email",
+        password: validPassword ? "" : "Invalid password",
+        confirmPassword: validConfirmPassword ? "" : "Passwords do not match",
         name: validName ? "" : "Name must be at least 3 characters",
       });
     }
@@ -116,7 +110,15 @@ const Login = (props: { setShowLoading: any }) => {
     <Box
       component="form"
       fontWeight={600}
-      sx={{ width: "100%", px: 3, position: "relative", height: "100%", display: "flex", flexDirection: "column", justifyContent: "center" }}
+      sx={{
+        width: "100%",
+        px: 3,
+        position: "relative",
+        height: "100%",
+        display: "flex",
+        flexDirection: "column",
+        justifyContent: "center",
+      }}
       onSubmit={(e) => {
         e.preventDefault();
         handleSubmit();
@@ -124,11 +126,27 @@ const Login = (props: { setShowLoading: any }) => {
     >
       <Typography
         variant={formType === "login" ? "h4" : "h5"}
-        sx={{ textAlign: "left", fontWeight: 600, position: "absolute", top:15, left: 5, color: "primary.main", opacity: 0.7}}
+        sx={{
+          textAlign: "left",
+          fontWeight: 600,
+          position: "absolute",
+          top: 15,
+          left: 5,
+          color: "primary.main",
+          opacity: 0.7,
+        }}
       >
         Pipeline fault detection system
       </Typography>
-      <Typography variant="h5" sx={{ mt: 5, mb: formType === "login" ? 5 : 2, textAlign: "left", opacity: 0.6 }}>
+      <Typography
+        variant="h5"
+        sx={{
+          mt: 5,
+          mb: formType === "login" ? 5 : 2,
+          textAlign: "left",
+          opacity: 0.6,
+        }}
+      >
         <Box component="span">Enter details to continue</Box>
       </Typography>
       {formType === "register" && (
@@ -140,7 +158,7 @@ const Login = (props: { setShowLoading: any }) => {
           name="name"
           helperText={errors.name}
           error={errors.name !== ""}
-          sx={{ width: "100%", mb: 2}}
+          sx={{ width: "100%", mb: 2 }}
           onChange={(e) => handleChange("name", e.currentTarget.value)}
         />
       )}
@@ -152,7 +170,7 @@ const Login = (props: { setShowLoading: any }) => {
         name="email"
         helperText={errors.email}
         error={errors.email !== ""}
-        sx={{ width: "100%", mb: 2}}
+        sx={{ width: "100%", mb: 2 }}
         onChange={(e) => handleChange("email", e.currentTarget.value)}
       />
       <TextField
@@ -164,7 +182,7 @@ const Login = (props: { setShowLoading: any }) => {
         helperText={errors.password}
         error={errors.password !== ""}
         fullWidth
-        sx={{ mb: 2}}
+        sx={{ mb: 2 }}
         onChange={(e) => handleChange("password", e.currentTarget.value)}
         InputProps={{
           endAdornment: (
@@ -196,7 +214,7 @@ const Login = (props: { setShowLoading: any }) => {
           helperText={errors.confirmPassword}
           error={errors.confirmPassword !== ""}
           fullWidth
-          sx={{ mb: 2}}
+          sx={{ mb: 2 }}
           onChange={(e) =>
             handleChange("confirmPassword", e.currentTarget.value)
           }

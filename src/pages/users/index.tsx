@@ -1,6 +1,6 @@
 import * as React from 'react';
-import { KeyboardBackspace, Star, StarBorder } from "@mui/icons-material";
-import { Typography, Box, Button, Avatar, Divider, CircularProgress } from "@mui/material";
+import { CameraAlt, KeyboardBackspace, Star, StarBorder } from "@mui/icons-material";
+import { Typography, Box, IconButton, Avatar, Divider, CircularProgress, Grid } from "@mui/material";
 import {
   ReactElement,
   JSXElementConstructor,
@@ -30,87 +30,81 @@ const iconSVG = () => {
   );
 };
 
-const DetailSection = (props: { sections: any }) => {
-  const { isDesktop } = Display();
-  const { sections } = props;
-  return sections.map((section: any, index1: any) => (
-    <>
-    <Box
-      sx={{
-        display: "flex",
-        flexDirection: "column",
-        justifyContent: "start",
-        alignItems: "flex-start",
-        gap: 4,
-        // if contents are too long, wrap them
-        flexWrap: "wrap",
-      }}
-    >
-      <Typography variant="h4" component="h1" gutterBottom fontWeight="bold">
-        {section.title}
-      </Typography>
-      <Box
+
+export const DroneFeed = (props: { width: any }) => {
+  const [live, setLive] = React.useState(false);
+  const [loading, setLoading] = React.useState(false);
+  const [error, setError] = React.useState(false);
+  const [sections, setSections] = React.useState([]);
+  const [showControlButtons, setShowControlButtons] = React.useState(false);
+  const { id } = useParams();
+  const navigate = useNavigate();
+  
+  //create a function that when called, will show the control buttons for a few seconds and then hide them
+  const showControls = () => {
+    setShowControlButtons(true);
+    setTimeout(() => {
+      setShowControlButtons(false);
+    }, 5000);
+  };
+
+  return (
+    <Grid container id="drone-feed" sx={{ width: "100vw", height: "100vh", }}>
+      <Grid item
+        xs={12}
+        md={8}
         sx={{
           display: "flex",
-          flexDirection: "row",
-          justifyContent: "start",
-          alignItems: "flex-start",
-          gap: isDesktop ? 6 : 2,
-          flex: 1,
-          flexWrap: "wrap",
-          opacity: 0.6,
+          flexDirection: "column",
+          justifyContent: "center",
+          alignItems: "center",
+          gap: 4,
+          padding: 4,
         }}
-      >
-        {section.content.map(
-          (
-            item: {
-              title:
-                | string
-                | number
-                | boolean
-                | ReactElement<any, string | JSXElementConstructor<any>>
-                | ReactFragment
-                | ReactPortal
-                | null
-                | undefined;
-              value:
-                | string
-                | number
-                | boolean
-                | ReactElement<any, string | JSXElementConstructor<any>>
-                | ReactFragment
-                | ReactPortal
-                | null
-                | undefined;
-            },
-            index: any
-          ) => {
-            // if there is no title or value, skip
-            if (!item.title || !item.value) return null;
-            return (
-              <Box>
-                <Typography variant="h6" component="h2" marginBottom={2}>
-                  {item.title}
-                </Typography>
-                <Typography variant="h5" component="h3" >
-                  {item.value}
-                </Typography>
-              </Box>
-            );
-          }
-        )}
-      </Box>
-    </Box>
-    {index1 !== sections.length - 1 && <Divider sx={{ width: "100%", fontWeight: 'bold' }} />}
-    </>
-  ));
-};
-
-export const User = (props: { width: any }) => {
-  const [ user, setUser ] = React.useState<any>(null);
-  const [ loading, setLoading ] = React.useState<boolean>(true);
-  const [ error, setError ] = React.useState<any>(null);
-  const [ rawUserDetail, setRawUserDetail ] = React.useState<any>(null);
-  // get the user id from the url
-  const { id } = useParams();
+        >
+          <Typography variant="h3" component="h1" fontWeight="bold">
+            Drone Feed: {id}
+          </Typography>
+          {/* // create a box for the drone feed. it should have button to play/pause, zoom in and out, and to take a snapshot. all of the buttons will be on top of the video feed and fades out after a few seconds */}
+          <Box
+            sx={{
+              display: "flex",
+              flexDirection: "column",
+              justifyContent: "center",
+              alignItems: "center",
+              gap: 4,
+              padding: 4,
+            }}
+            position={"relative"}
+            // every time the mouse is moved over the video feed, show the control buttons
+            onMouseMove={showControls}
+          >
+            <video
+              autoPlay
+              loop
+              muted
+              width={"100%"}
+              height={"auto"}
+              style={{ borderRadius: 2, }}
+            >
+              <source src="https://www.w3schools.com/html/mov_bbb.mp4" type="video/mp4" />
+              Your browser does not support the video tag.
+            </video>
+            
+          </Box>
+        </Grid>
+        <Grid item
+          xs={12}
+          md={4}
+          sx={{
+            display: "flex",
+            flexDirection: "column",
+            justifyContent: "center",
+            alignItems: "center",
+            gap: 4,
+            padding: 4,
+          }}
+          ></Grid>
+    </Grid>
+  )
 };

@@ -1,7 +1,7 @@
 import { AuthProvider, RequireAuth } from "../contexts/authContext";
 import { BrowserRouter, Route, Routes } from "react-router-dom";
 import Welcome from "./welcom";
-// import Base from "../pages";
+import { DroneFeed } from "../pages/home";
 import NotFound from "../pages/404";
 import { Display } from "../utils/device";
 
@@ -13,7 +13,7 @@ export default function AllRoutes() {
     <Routes>
       <Route path="/" element={<Welcome />} />
       {/* @ts-ignore */}
-      {/* <Route path='/users/*' element={<RequireAuth><Base /></RequireAuth>} /> */}
+      <Route path='/home/*' element={<RequireAuth><DroneFeed /></RequireAuth>} />
       {/* 404 page */}
       <Route path="*" element={<NotFound isDesktop={isDesktop} />} />
     </Routes>
