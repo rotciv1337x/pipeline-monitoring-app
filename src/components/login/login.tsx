@@ -13,9 +13,7 @@ import { API_URL } from "../../config";
 
 const emailRegex = /^[\w-.]+@([\w-]+\.)+[\w-]{2,4}$/;
 // create a regex for password. it must contain at least 8 characters, at least one uppercase letter, one lowercase letter, one number and one special character
-const passwordRegex =
-  /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*?&])[A-Za-z\d@$!%*?&]{8,}$/;
-
+const passwordRegex =/^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*\W|_)[A-Za-z\d\W_]{8,}$/
 const Login = (props: { setShowLoading: any }) => {
   const navigate = useNavigate();
   const { setShowLoading } = props;
