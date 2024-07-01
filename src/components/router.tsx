@@ -1,7 +1,7 @@
 import { AuthProvider, RequireAuth } from "../contexts/authContext";
 import { BrowserRouter, Route, Routes } from "react-router-dom";
 import Welcome from "./welcom";
-import Base from "../pages";
+// import Base from "../pages";
 import NotFound from "../pages/404";
 import { Display } from "../utils/device";
 
