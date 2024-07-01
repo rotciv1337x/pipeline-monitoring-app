@@ -262,7 +262,7 @@ const Login = (props: { setShowLoading: any }) => {
           handleSubmit();
         }}
       >
-        Login
+        {formType.toLocaleUpperCase()}
       </Button>
       <Button
         variant="text"
