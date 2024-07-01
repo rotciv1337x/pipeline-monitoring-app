@@ -9,6 +9,7 @@ import React, { useState } from "react";
 import { useLocation, useNavigate } from "react-router-dom";
 
 import { useAuth } from "../../contexts/authContext";
+import { API_URL } from "../../config";
 
 const emailRegex = /^[\w-.]+@([\w-]+\.)+[\w-]{2,4}$/;
 // create a regex for password. it must contain at least 8 characters, at least one uppercase letter, one lowercase letter, one number and one special character
@@ -47,8 +48,9 @@ const Login = (props: { setShowLoading: any }) => {
     }
     if (validEmail && validPassword && validConfirmPassword && validName) {
       console.log("valid");
+      try{
       let response: any = await fetch(
-        `http://localhost:5000/user/${formType}`,
+        `${API_URL}/user/${formType}`,
         {
           method: "POST",
           headers: {
@@ -78,6 +80,10 @@ const Login = (props: { setShowLoading: any }) => {
       } else {
         setFormError(response.message);
       }
+    } catch (error) {
+      console.log(error);
+      setFormError("An error occurred. Please try again later");
+    }
     } else {
       setErrors({
         email:validEmail ? "" : "Invalid email",

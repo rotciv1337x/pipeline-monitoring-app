@@ -18,7 +18,7 @@ function Welcome() {
     return (
       <Modal
         open={showLoading}
-        onClose={() => setShowLoading(false)}
+        // onClose={() => setShowLoading(false)}
         aria-labelledby="modal-modal-title"
         aria-describedby="modal-modal-description"
         sx={{
