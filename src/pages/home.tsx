@@ -36,6 +36,53 @@ import {
 } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import { Display } from "../utils/device";
+import { BlobServiceClient } from '@azure/storage-blob';
+
+const storageAccount = 'leaksandpipeskeyframes';
+const containerName = 'key-frames';
+const sasToken = 'sv=2022-11-02&ss=bfqt&srt=sco&sp=rwdlacupiytfx&se=2024-11-29T16:37:49Z&st=2024-08-13T08:37:49Z&sip=0.0.0.0-255.255.255.255&spr=https'
+const blobServiceUrl = `https://${storageAccount}.blob.core.windows.net`;
+
+const Slideshow = () => {
+  const [images, setImages] = React.useState<string[]>([]);
+  const [currentIndex, setCurrentIndex] = React.useState(0);
+
+  React.useEffect(() => {
+    const fetchImages = async () => {
+      const blobServiceClient = new BlobServiceClient(`${blobServiceUrl}?${sasToken}`);
+      const containerClient = blobServiceClient.getContainerClient(containerName);
+      const imageUrls: string[] = [];
+
+      for await (const blob of containerClient.listBlobsFlat()) {
+        const imageUrl = `${blobServiceUrl}/${containerName}/${blob.name}?${sasToken}`;
+        console.log(imageUrl);
+        imageUrls.push(imageUrl);
+      }
+
+      setImages(imageUrls);
+    };
+
+    fetchImages();
+  }, []);
+
+  React.useEffect(() => {
+    const interval = setInterval(() => {
+      setCurrentIndex(prevIndex => (prevIndex + 1) % images.length);
+    }, 2000); // Change image every 3 seconds
+
+    return () => clearInterval(interval);
+  }, [images]);
+
+  if (images.length === 0) {
+    return <div>Loading...</div>;
+  }
+
+  return (
+    <div>
+      <img src={images[currentIndex]} alt="Slideshow" style={{ width: '100%', height: 'auto' }} />
+    </div>
+  );
+};
 
 const iconSVG = () => {
   return (
@@ -185,7 +232,7 @@ export const DroneFeed = (props: { width: any }) => {
             showControls();
           }}
         >
-          <video
+          {/* <video
             ref={videoRef}
             autoPlay
             loop
@@ -202,7 +249,8 @@ export const DroneFeed = (props: { width: any }) => {
           >
             <source src="/demo-vid.mp4" type="video/mp4" />
             Your browser does not support the video tag.
-          </video>
+          </video> */}
+          <Slideshow />
           <IconButton
             sx={{
               top: 0,
