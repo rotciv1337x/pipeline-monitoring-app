@@ -55,7 +55,6 @@ const Slideshow = () => {
 
       for await (const blob of containerClient.listBlobsFlat()) {
         const imageUrl = `${blobServiceUrl}/${containerName}/${blob.name}?${sasToken}`;
-        console.log(imageUrl);
         imageUrls.push(imageUrl);
       }
 
