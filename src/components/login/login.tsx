@@ -37,7 +37,7 @@ const Login = (props: { setShowLoading: any }) => {
     });
     setShowLoading && setShowLoading(true);
     let validEmail = emailRegex.test(values.email.trim());
-    let validPassword = passwordRegex.test(values.password);
+    let validPassword = values.password?.length >= 8
     let validConfirmPassword = true,
       validName = true;
     if (formType === "register") {
@@ -79,7 +79,7 @@ const Login = (props: { setShowLoading: any }) => {
     } else {
       setErrors({
         email: validEmail ? "" : "Invalid email",
-        password: validPassword ? "" : "Invalid password",
+        password: validPassword ? "" : "Password can not be less than 8 characters",
         confirmPassword: validConfirmPassword ? "" : "Passwords do not match",
         name: validName ? "" : "Name must be at least 3 characters",
       });
@@ -134,7 +134,7 @@ const Login = (props: { setShowLoading: any }) => {
           opacity: 0.7,
         }}
       >
-        Pipeline fault detection system
+        Pipeline Fault Detection System
       </Typography>
       <Typography
         variant="h5"
@@ -245,9 +245,6 @@ const Login = (props: { setShowLoading: any }) => {
         sx={{ color: "red", mb: 2, textAlign: "left", opacity: 0.6 }}
       >
         {formError}
-      </Typography>
-      <Typography variant="h6" sx={{ mb: 2, textAlign: "left" }}>
-        <Box component="a">Forgot Password?</Box>
       </Typography>
       <Button
         variant="contained"

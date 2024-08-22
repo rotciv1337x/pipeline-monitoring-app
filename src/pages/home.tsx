@@ -67,7 +67,7 @@ const Slideshow = () => {
   React.useEffect(() => {
     const interval = setInterval(() => {
       setCurrentIndex(prevIndex => (prevIndex + 1) % images.length);
-    }, 2000); // Change image every 3 seconds
+    }, 2000); // Change image every 2 seconds
 
     return () => clearInterval(interval);
   }, [images]);
@@ -269,7 +269,7 @@ export const DroneFeed = (props: { width: any }) => {
               position: "absolute",
               bottom: 0,
               right: 0,
-              display: showControlButtons ? "flex" : "none",
+              display: 'none', //showControlButtons ? "flex" : "none",
               justifyContent: "flex-end",
               alignItems: "flex-end",
               gap: "auto",
