@@ -1,0 +1,44 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Image with Bounding Box</title>
+</head>
+<body>
+    <h1>Image with Bounding Box</h1>
+    <canvas id="canvas"></canvas>
+    <script>
+                // Image URL and bounding box coordinates
+        const imageUrl = "https://leaksandpipeskeyframes.blob.core.windows.net/key-frames/key-frames/2024/8/22/Pipeline_Sample_frame_108.jpg";
+        const boundingBox = {
+            x: 732.5,
+            y: 400,
+            width: 1465,
+            height: 798
+        };
+
+        // Load the image and draw the bounding box
+        const canvas = document.getElementById('canvas');
+        const ctx = canvas.getContext('2d');
+        const img = new Image();
+
+        img.onload = function() {
+            // Set canvas dimensions to match the image
+            canvas.width = img.width;
+            canvas.height = img.height;
+
+            // Draw the image
+            ctx.drawImage(img, 0, 0);
+
+            // Draw the bounding box
+            ctx.strokeStyle = 'red';
+            ctx.lineWidth = 3;
+            ctx.strokeRect(boundingBox.x, boundingBox.y, boundingBox.width, boundingBox.height);
+        };
+
+        img.src = imageUrl;
+
+    </script>
+</body>
+</html>

@@ -1,0 +1,91 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Image with Bounding Box</title>
+    <style>
+        #canvas {
+            position: relative;
+        }
+        .tooltip {
+            position: absolute;
+            background-color: rgba(0, 0, 0, 0.7);
+            color: white;
+            padding: 5px;
+            border-radius: 5px;
+            display: none;
+            pointer-events: none;
+        }
+    </style>
+</head>
+<body>
+    <h1>Image with Bounding Box</h1>
+    <canvas id="canvas"></canvas>
+    <div id="tooltip" class="tooltip"></div>
+    <script>
+                // Image URL and bounding box coordinates
+        const imageUrl = "https://leaksandpipeskeyframes.blob.core.windows.net/key-frames/key-frames/2024/8/22/Pipeline_Sample_frame_108.jpg";
+        const boundingBox = {
+            x: 732.5,
+            y: 400,
+            width: 1465,
+            height: 798,
+            confidence: 0.5388651490211487,
+            class: '1 pipes'
+        };
+
+        // Load the image and draw the bounding box
+        const canvas = document.getElementById('canvas');
+        const ctx = canvas.getContext('2d');
+        const img = new Image();
+        const tooltip = document.getElementById('tooltip');
+
+        img.onload = function() {
+            // Set canvas dimensions to match the image
+            canvas.width = img.width;
+            canvas.height = img.height;
+
+            // Draw the image
+            ctx.drawImage(img, 0, 0);
+
+            // Draw the bounding box
+            ctx.strokeStyle = 'red';
+            ctx.lineWidth = 5; // Thicker line
+            ctx.strokeRect(boundingBox.x, boundingBox.y, boundingBox.width, boundingBox.height);
+
+            // Scale the canvas to fit the screen
+            const scale = Math.min(window.innerWidth / img.width, window.innerHeight / img.height);
+            canvas.style.width = `${img.width * scale}px`;
+            canvas.style.height = `${img.height * scale}px`;
+        };
+
+        img.src = imageUrl;
+
+        // Show tooltip on hover
+        canvas.addEventListener('mousemove', function(event) {
+            const rect = canvas.getBoundingClientRect();
+            const x = event.clientX - rect.left;
+            const y = event.clientY - rect.top;
+
+            if (x >= boundingBox.x && x <= boundingBox.x + boundingBox.width &&
+                y >= boundingBox.y && y <= boundingBox.y + boundingBox.height) {
+                tooltip.style.display = 'block';
+                tooltip.style.left = `${event.clientX + 10}px`;
+                tooltip.style.top = `${event.clientY + 10}px`;
+                tooltip.innerHTML = `
+                    <strong>Class:</strong> ${boundingBox.class}<br>
+                    <strong>Confidence:</strong> ${boundingBox.confidence.toFixed(2)}<br>
+                    <strong>X:</strong> ${boundingBox.x}<br>
+                    <strong>Y:</strong> ${boundingBox.y}<br>
+                    <strong>Width:</strong> ${boundingBox.width}<br>
+                    <strong>Height:</strong> ${boundingBox.height}
+                `;
+            } else {
+                tooltip.style.display = 'none';
+            }
+        });
+
+    </script>
+</body>
+</html>
