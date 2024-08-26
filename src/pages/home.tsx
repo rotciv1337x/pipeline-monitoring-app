@@ -42,7 +42,12 @@ const storageAccount = 'leaksandpipeskeyframes';
 const containerName = 'key-frames';
 const sasToken = 'sv=2022-11-02&ss=bfqt&srt=sco&sp=rwdlacupiytfx&se=2024-11-29T16:37:49Z&st=2024-08-13T08:37:49Z&sip=0.0.0.0-255.255.255.255&spr=https'
 const blobServiceUrl = `https://${storageAccount}.blob.core.windows.net`;
+const pattern = /frame_\d+_(\d{2}:\d{2}:\d{2})\.jpg/;
 
+// Function to convert timestamp to a sortable format
+const timestampToSortable = (timestamp: string) => {
+    return timestamp.replace(/:/g, '');
+};
 const Slideshow = () => {
   const [images, setImages] = React.useState<string[]>([]);
   const [currentIndex, setCurrentIndex] = React.useState(0);
@@ -52,12 +57,23 @@ const Slideshow = () => {
       const blobServiceClient = new BlobServiceClient(`${blobServiceUrl}?${sasToken}`);
       const containerClient = blobServiceClient.getContainerClient(containerName);
       const imageUrls: string[] = [];
+      const blobs = [];
 
       for await (const blob of containerClient.listBlobsFlat()) {
-        const imageUrl = `${blobServiceUrl}/${containerName}/${blob.name}?${sasToken}`;
-        imageUrls.push(imageUrl);
-      }
+        const match = blob.name.match(pattern);
+        if (match) {
+            const timestamp = match[1];
+            const sortableTimestamp = timestampToSortable(timestamp);
+            blobs.push({ sortableTimestamp, name: blob.name });
+        }
+        blobs.sort((a, b) => a.sortableTimestamp.localeCompare(b.sortableTimestamp));
 
+      }
+        // Print sorted blob names
+        blobs.forEach(blob => {
+          const imageUrl = `${blobServiceUrl}/${containerName}/${blob.name}?${sasToken}`;
+          imageUrls.push(imageUrl);
+        });
       setImages(imageUrls);
     };
 
