@@ -10,6 +10,7 @@ import {
   Fullscreen,
   FullscreenExit,
   KeyboardBackspace,
+  LiveTv,
   PauseCircleFilledRounded,
   PlayArrowRounded,
   Star,
@@ -27,6 +28,7 @@ import {
   Grid,
   Skeleton,
   Drawer,
+  Button,
 } from "@mui/material";
 import {
   ReactElement,
@@ -46,10 +48,13 @@ const containerName = 'key-frames';
 const sasToken = 'sv=2022-11-02&ss=bfqt&srt=sco&sp=rwdlacupiytfx&se=2024-11-29T16:37:49Z&st=2024-08-13T08:37:49Z&sip=0.0.0.0-255.255.255.255&spr=https';
 const blobServiceUrl = `https://${storageAccount}.blob.core.windows.net`;
 
-const Slideshow = () => {
+const Slideshow = (
+  {ref, play, pause, stop, next, previous, ...props}: {ref?: any, play?: any, pause?: any, stop?: any, next?: any, previous?: any, [key: string]: any}
+) => {
   const [images, setImages] = useState<string[]>([]);
   const [currentIndex, setCurrentIndex] = useState(0);
 
+  let slideshowInterval: any;
   useEffect(() => {
     const blobServiceClient = new BlobServiceClient(`${blobServiceUrl}?${sasToken}`);
     const containerClient = blobServiceClient.getContainerClient(containerName);
@@ -97,12 +102,23 @@ const Slideshow = () => {
   }, []);
 
   useEffect(() => {
-    const interval = setInterval(() => {
+    slideshowInterval = setInterval(() => {
       setCurrentIndex(prevIndex => (prevIndex + 1) % images.length);
     }, 3000); // Change image every 3 seconds
 
-    return () => clearInterval(interval);
+    return () => clearInterval(slideshowInterval);
   }, [images]);
+
+  // if play is true, start the slideshow else stop it
+  useEffect(() => {
+    if (play) {
+      slideshowInterval = setInterval(() => {
+        setCurrentIndex(prevIndex => (prevIndex + 1) % images.length);
+      }, 3000); // Change image every 3 seconds
+    } else {
+      clearInterval(slideshowInterval);
+    }
+  }, [play]);
 
   const preloadImages = (imageUrls: string[]) => {
     imageUrls.forEach(url => {
@@ -116,7 +132,7 @@ const Slideshow = () => {
   }
 
   return (
-    <div>
+    <div ref={ref}>
       <img src={images[currentIndex]} alt="Slideshow" style={{ width: '100%', height: 'auto' }} />
     </div>
   );
@@ -154,23 +170,24 @@ export const DroneFeed = (props: { width: any }) => {
   const [fullscreen, setFullscreen] = React.useState(false);
   const [play, setPlay] = React.useState(true);
   const [openDrawer, setOpenDrawer] = React.useState(false);
+  const [display, setDisplay] = React.useState<'live' | 'analyzed'>('live');
 
-  const videoRef = React.useRef<HTMLVideoElement>(null);
+  const videoRef = React.useRef<HTMLImageElement>(null);
 
-  // Play/Pause the video based on the play state
-  React.useEffect(() => {
-    if (play) {
-      videoRef.current?.play();
-    } else {
-      videoRef.current?.pause();
-    }
-  }, [play]);
+  // // Play/Pause the video based on the play state
+  // React.useEffect(() => {
+  //   if (play) {
+  //     videoRef.current?.play();
+  //   } else {
+  //     videoRef.current?.pause();
+  //   }
+  // }, [play]);
 
-  React.useEffect(() => {
-    if (videoRef.current) {
-      videoRef.current.playbackRate = playbackSpeed;
-    }
-  }, [playbackSpeed]);
+  // React.useEffect(() => {
+  //   if (videoRef.current) {
+  //     videoRef.current.playbackRate = playbackSpeed;
+  //   }
+  // }, [playbackSpeed]);
   // Function to zoom in
   const zoomIn = () => {
     setZoomRatio((prevZoom) => prevZoom * 1.1);
@@ -199,8 +216,8 @@ export const DroneFeed = (props: { width: any }) => {
   const takeScreenshot = () => {
     if (videoRef.current) {
       const canvas = document.createElement("canvas");
-      canvas.width = videoRef.current.videoWidth;
-      canvas.height = videoRef.current.videoHeight;
+      canvas.width = videoRef.current.width;
+      canvas.height = videoRef.current.height;
       const ctx = canvas.getContext("2d");
       ctx?.drawImage(videoRef.current, 0, 0, canvas.width, canvas.height);
       const image = canvas.toDataURL("image/png");
@@ -238,6 +255,10 @@ export const DroneFeed = (props: { width: any }) => {
 
   return (
     <>
+      <Box sx={{ display: "flex", flexDirection: "row", justifyContent: "center", alignItems: "center", height: '60px',maxHeight: '60px', gap: 2 }}>
+        <Button onClick={() => setDisplay('live')} startIcon={<LiveTv />} variant="contained" disabled={display === 'live'} > Live Feed </Button>
+        <Button onClick={() => setDisplay('analyzed')} startIcon={<ArrowBack />} variant="contained" disabled={display === 'analyzed'} > Analyzed Feed </Button>
+      </Box>
     <Grid container id="drone-feed" sx={{ width: "100vw", height: "100vh", overflow: "hidden" }}>
       <Grid
         item
