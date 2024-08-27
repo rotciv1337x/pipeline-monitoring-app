@@ -33,60 +33,83 @@ import {
   JSXElementConstructor,
   ReactFragment,
   ReactPortal,
+  useState,
+  useEffect,
 } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import { Display } from "../utils/device";
 import { BlobServiceClient } from '@azure/storage-blob';
 
+
 const storageAccount = 'leaksandpipeskeyframes';
 const containerName = 'key-frames';
-const sasToken = 'sv=2022-11-02&ss=bfqt&srt=sco&sp=rwdlacupiytfx&se=2024-11-29T16:37:49Z&st=2024-08-13T08:37:49Z&sip=0.0.0.0-255.255.255.255&spr=https'
+const sasToken = 'sv=2022-11-02&ss=bfqt&srt=sco&sp=rwdlacupiytfx&se=2024-11-29T16:37:49Z&st=2024-08-13T08:37:49Z&sip=0.0.0.0-255.255.255.255&spr=https';
 const blobServiceUrl = `https://${storageAccount}.blob.core.windows.net`;
-const pattern = /frame_\d+_(\d{2}:\d{2}:\d{2})\.jpg/;
 
-// Function to convert timestamp to a sortable format
-const timestampToSortable = (timestamp: string) => {
-    return timestamp.replace(/:/g, '');
-};
 const Slideshow = () => {
-  const [images, setImages] = React.useState<string[]>([]);
-  const [currentIndex, setCurrentIndex] = React.useState(0);
+  const [images, setImages] = useState<string[]>([]);
+  const [currentIndex, setCurrentIndex] = useState(0);
 
-  React.useEffect(() => {
+  useEffect(() => {
+    const blobServiceClient = new BlobServiceClient(`${blobServiceUrl}?${sasToken}`);
+    const containerClient = blobServiceClient.getContainerClient(containerName);
+
+    // Get the current date
+    const currentDate = new Date();
+    const year = currentDate.getFullYear();
+    const month = currentDate.getMonth() + 1; // Months are zero-based
+    const day = currentDate.getDate();
+
+    // Construct the path dynamically
+    const path = `key-frames/${year}/${month}/${day}/`;
+
+    const imageUrls: string[] = [];
     const fetchImages = async () => {
-      const blobServiceClient = new BlobServiceClient(`${blobServiceUrl}?${sasToken}`);
-      const containerClient = blobServiceClient.getContainerClient(containerName);
-      const imageUrls: string[] = [];
-      const blobs = [];
 
-      for await (const blob of containerClient.listBlobsFlat()) {
-        const match = blob.name.match(pattern);
-        if (match) {
-            const timestamp = match[1];
-            const sortableTimestamp = timestampToSortable(timestamp);
-            blobs.push({ sortableTimestamp, name: blob.name });
-        }
-        blobs.sort((a, b) => a.sortableTimestamp.localeCompare(b.sortableTimestamp));
-
+      for await (const blob of containerClient.listBlobsFlat({ prefix: path })) {
+        const imageUrl = `${blobServiceUrl}/${containerName}/${blob.name}?${sasToken}`;
+        imageUrls.push(imageUrl);
       }
-        // Print sorted blob names
-        blobs.forEach(blob => {
-          const imageUrl = `${blobServiceUrl}/${containerName}/${blob.name}?${sasToken}`;
-          imageUrls.push(imageUrl);
-        });
+
+      // Preload images
+      preloadImages(imageUrls);
+
+      // Cache images in localStorage
+      localStorage.setItem('cachedImages', JSON.stringify(imageUrls));
+
       setImages(imageUrls);
     };
 
-    fetchImages();
+    // Check if images are cached in localStorage
+    const cachedImages = localStorage.getItem('cachedImages');
+    if (cachedImages) {
+      setImages(JSON.parse(cachedImages));
+    } else {
+      fetchImages();
+    }
+
+    // also, reload the list of images every 10 sec
+    const reloadImageTimer = setInterval(() => {
+      console.log('reloading image list')
+      fetchImages()
+    }, 10000);
+    return clearInterval(reloadImageTimer)
   }, []);
 
-  React.useEffect(() => {
+  useEffect(() => {
     const interval = setInterval(() => {
       setCurrentIndex(prevIndex => (prevIndex + 1) % images.length);
-    }, 2000); // Change image every 2 seconds
+    }, 3000); // Change image every 3 seconds
 
     return () => clearInterval(interval);
   }, [images]);
+
+  const preloadImages = (imageUrls: string[]) => {
+    imageUrls.forEach(url => {
+      const img = new Image();
+      img.src = url;
+    });
+  };
 
   if (images.length === 0) {
     return <div>Loading...</div>;
@@ -98,7 +121,6 @@ const Slideshow = () => {
     </div>
   );
 };
-
 const iconSVG = () => {
   return (
     <svg
@@ -322,7 +344,7 @@ export const DroneFeed = (props: { width: any }) => {
           </Box>
         </Box>
       </Grid>
-      <Grid
+      {/* <Grid
         item
         xs={12}
         md={3}
@@ -346,7 +368,7 @@ export const DroneFeed = (props: { width: any }) => {
           <Skeleton variant="rectangular" width="100%" height={150} key={index} />
         ))
       }
-      </Grid>
+      </Grid> */}
     </Grid>
     <Drawer anchor="right" open={openDrawer} onClose={() => setOpenDrawer(false)}>
       <Box sx={{ width: 300, height: "100vh", overflowY: "auto", padding: 2 }}>
