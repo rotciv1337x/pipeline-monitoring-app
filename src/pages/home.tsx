@@ -1,7 +1,6 @@
 import * as React from "react";
 import {
-  ArrowBack,
-  ArrowForward,
+  AutoMode,
   CameraAlt,
   ChevronLeftRounded,
   ChevronRightRounded,
@@ -9,12 +8,9 @@ import {
   FastRewind,
   Fullscreen,
   FullscreenExit,
-  KeyboardBackspace,
   LiveTv,
   PauseCircleFilledRounded,
   PlayArrowRounded,
-  Star,
-  StarBorder,
   ZoomIn,
   ZoomOut,
 } from "@mui/icons-material";
@@ -22,19 +18,12 @@ import {
   Typography,
   Box,
   IconButton,
-  Avatar,
-  Divider,
-  CircularProgress,
   Grid,
   Skeleton,
   Drawer,
   Button,
 } from "@mui/material";
 import {
-  ReactElement,
-  JSXElementConstructor,
-  ReactFragment,
-  ReactPortal,
   useState,
   useEffect,
 } from "react";
@@ -44,12 +33,11 @@ import { BlobServiceClient } from '@azure/storage-blob';
 
 
 const storageAccount = 'leaksandpipeskeyframes';
-const containerName = 'key-frames';
 const sasToken = 'sv=2022-11-02&ss=bfqt&srt=sco&sp=rwdlacupiytfx&se=2024-11-29T16:37:49Z&st=2024-08-13T08:37:49Z&sip=0.0.0.0-255.255.255.255&spr=https';
 const blobServiceUrl = `https://${storageAccount}.blob.core.windows.net`;
 
 const Slideshow = (
-  {ref, play, pause, stop, next, previous, ...props}: {ref?: any, play?: any, pause?: any, stop?: any, next?: any, previous?: any, [key: string]: any}
+  {ref, containerName, play, pause, stop, next, previous, ...props}: {ref?: any, containerName: string, play?: any, pause?: any, stop?: any, next?: any, previous?: any, [key: string]: any}
 ) => {
   const [images, setImages] = useState<string[]>([]);
   const [currentIndex, setCurrentIndex] = useState(0);
@@ -58,33 +46,34 @@ const Slideshow = (
   useEffect(() => {
     const blobServiceClient = new BlobServiceClient(`${blobServiceUrl}?${sasToken}`);
     const containerClient = blobServiceClient.getContainerClient(containerName);
-
+  
     // Get the current date
     const currentDate = new Date();
     const year = currentDate.getFullYear();
     const month = currentDate.getMonth() + 1; // Months are zero-based
     const day = currentDate.getDate();
-
+  
     // Construct the path dynamically
     const path = `key-frames/${year}/${month}/${day}/`;
-
+  
     const imageUrls: string[] = [];
     const fetchImages = async () => {
-
+      console.log('fetching images');
       for await (const blob of containerClient.listBlobsFlat({ prefix: path })) {
         const imageUrl = `${blobServiceUrl}/${containerName}/${blob.name}?${sasToken}`;
+        console.log(imageUrl);
         imageUrls.push(imageUrl);
       }
-
+  
       // Preload images
       preloadImages(imageUrls);
-
+  
       // Cache images in localStorage
-      localStorage.setItem('cachedImages', JSON.stringify(imageUrls));
-
+      // localStorage.setItem('cachedImages', JSON.stringify(imageUrls));
+  
       setImages(imageUrls);
     };
-
+  
     // Check if images are cached in localStorage
     const cachedImages = localStorage.getItem('cachedImages');
     if (cachedImages) {
@@ -92,15 +81,16 @@ const Slideshow = (
     } else {
       fetchImages();
     }
-
-    // also, reload the list of images every 10 sec
+  
+    // Reload the list of images every 10 seconds
     const reloadImageTimer = setInterval(() => {
-      console.log('reloading image list')
-      fetchImages()
+      console.log('reloading image list');
+      fetchImages();
     }, 10000);
-    return clearInterval(reloadImageTimer)
-  }, []);
-
+  
+    // Clear interval on component unmount or when containerName changes
+    return () => clearInterval(reloadImageTimer);
+  }, [containerName]);
   useEffect(() => {
     slideshowInterval = setInterval(() => {
       setCurrentIndex(prevIndex => (prevIndex + 1) % images.length);
@@ -137,6 +127,7 @@ const Slideshow = (
     </div>
   );
 };
+
 const iconSVG = () => {
   return (
     <svg
@@ -171,8 +162,16 @@ export const DroneFeed = (props: { width: any }) => {
   const [play, setPlay] = React.useState(true);
   const [openDrawer, setOpenDrawer] = React.useState(false);
   const [display, setDisplay] = React.useState<'live' | 'analyzed'>('live');
+  const [containerName, setContainerName] = React.useState<'key-frames' | 'processed-frames'>('key-frames')
 
   const videoRef = React.useRef<HTMLImageElement>(null);
+
+  // every time dispay changes, set change contianerName
+  React.useEffect(()=> {
+    console.log(display, containerName)
+    if(display === 'live') setContainerName('key-frames')
+    else setContainerName('processed-frames')
+  }, [display])
 
   // // Play/Pause the video based on the play state
   // React.useEffect(() => {
@@ -257,7 +256,7 @@ export const DroneFeed = (props: { width: any }) => {
     <>
       <Box sx={{ display: "flex", flexDirection: "row", justifyContent: "center", alignItems: "center", height: '60px',maxHeight: '60px', gap: 2 }}>
         <Button onClick={() => setDisplay('live')} startIcon={<LiveTv />} variant="contained" disabled={display === 'live'} > Live Feed </Button>
-        <Button onClick={() => setDisplay('analyzed')} startIcon={<ArrowBack />} variant="contained" disabled={display === 'analyzed'} > Analyzed Feed </Button>
+        <Button onClick={() => setDisplay('analyzed')} startIcon={<AutoMode />} variant="contained" disabled={display === 'analyzed'} > Analyzed Feed </Button>
       </Box>
     <Grid container id="drone-feed" sx={{ width: "100vw", height: "100vh", overflow: "hidden" }}>
       <Grid
@@ -308,7 +307,7 @@ export const DroneFeed = (props: { width: any }) => {
             <source src="/demo-vid.mp4" type="video/mp4" />
             Your browser does not support the video tag.
           </video> */}
-          <Slideshow />
+          <Slideshow containerName= {containerName} />
           <IconButton
             sx={{
               top: 0,
