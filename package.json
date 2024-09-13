@@ -14,7 +14,10 @@
     "@emotion/styled": "latest",
     "@mui/icons-material": "next",
     "@mui/material": "next",
+    "@mui/x-tree-view": "^7.15.0",
+    "@react-spring/web": "^9.7.4",
     "axios": "^1.7.2",
+    "idb": "^8.0.0",
     "react": "latest",
     "react-dom": "latest",
     "react-router-dom": "^6.24.0"

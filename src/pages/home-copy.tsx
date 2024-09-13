@@ -32,13 +32,13 @@ import { useParams, useNavigate } from "react-router-dom";
 import { Display } from "../utils/device";
 import { BlobServiceClient } from '@azure/storage-blob';
 import FileExplorer from "../components/treeview";
-import { openDB } from "idb";
 
 
 const storageAccount = 'leaksandpipeskeyframes';
 const sasToken = 'sv=2022-11-02&ss=bfqt&srt=sco&sp=rwdlacupiytfx&se=2024-11-29T16:37:49Z&st=2024-08-13T08:37:49Z&sip=0.0.0.0-255.255.255.255&spr=https';
 const blobServiceUrl = `https://${storageAccount}.blob.core.windows.net`;
 
+// create a function that list all the folders in the container traversing through the folders
 const listFolders = async (containerName: string) => {
   const blobServiceClient = new BlobServiceClient(`${blobServiceUrl}?${sasToken}`);
   const containerClient = blobServiceClient.getContainerClient(containerName);
@@ -72,20 +72,12 @@ const listFolders = async (containerName: string) => {
 const Slideshow = (
   {ref, containerName, play, pause, stop, next,setFolders, selected, previous, ...props}: {ref?: any, containerName: string, play?: any, pause?: any, stop?: any, next?: any, setFolders: any, selected?: string, previous?: any, [key: string]: any}
 ) => {
-
   const [images, setImages] = useState<string[]>([]);
   const [currentIndex, setCurrentIndex] = useState(0);
-  // create a state to store image we will be pulling from indexedDB
-  const [image, setImage] = useState<HTMLImageElement | null>(null);
-
-  const dbPromise = openDB('image-store', 1, {
-    upgrade(db) {
-      db.createObjectStore('images');
-    },
-  });
 
   let slideshowInterval: any;
   useEffect(() => {
+    // log all the folders in the container to the console
     setFolders && listFolders(containerName).then(setFolders);
     const blobServiceClient = new BlobServiceClient(`${blobServiceUrl}?${sasToken}`);
     const containerClient = blobServiceClient.getContainerClient(containerName);
@@ -95,14 +87,16 @@ const Slideshow = (
     const year = currentDate.getFullYear();
     const month = currentDate.getMonth() + 1; // Months are zero-based
     const day = currentDate.getDate();
-  
+   
     // Construct the path dynamically
-    const path = selected ? `key-frames/${selected.replaceAll('.','/')}` : `key-frames/${year}/${month}/${day}/`;
-  
+    const path = selected ? `key-frames/${selected.replaceAll('.','/')}` : `key-frames/${year}/${month}/${24}/`;
+    console.log(path, selected, 'path');
     const imageUrls: string[] = [];
     const fetchImages = async () => {
       for await (const blob of containerClient.listBlobsFlat({ prefix: path })) {
+        // if the file is not an image skip
         const imageUrl = `${blobServiceUrl}/${containerName}/${blob.name}?${sasToken}`;
+        if(!imageUrl.endsWith('.jpg')) continue;
         imageUrls.push(imageUrl);
       }
   
@@ -131,29 +125,17 @@ const Slideshow = (
     // Clear interval on component unmount or when containerName changes
     return () => clearInterval(reloadImageTimer);
   }, [containerName, selected]);
+  useEffect(() => {
+    console.log('selected n', selected);
+  }, [selected]);
 
   useEffect(() => {
     slideshowInterval = setInterval(() => {
       setCurrentIndex(prevIndex => (prevIndex + 1) % images.length);
-      
     }, 3000); // Change image every 3 seconds
 
     return () => clearInterval(slideshowInterval);
-  }, [images, selected]);
-
-  useEffect(() => {
-    // find the image in indexedDB and set it as the current image
-    dbPromise.then(db => {
-      db.get('images', images[currentIndex]).then(blob => {
-      const imageUrl = URL.createObjectURL(blob);
-      const img = new Image();
-      img.src = imageUrl;
-      img.onload = () => {
-        setImage(img);
-      };
-    });
-    })
-  }, [currentIndex]);
+  }, [images]);
 
   // if play is true, start the slideshow else stop it
   useEffect(() => {
@@ -165,20 +147,11 @@ const Slideshow = (
       clearInterval(slideshowInterval);
     }
   }, [play]);
-  
-  const preloadImages = async (imageUrls: string[]) => {
-    const db = await dbPromise;
-  
+
+  const preloadImages = (imageUrls: string[]) => {
     imageUrls.forEach(url => {
       const img = new Image();
       img.src = url;
-      img.onload = async () => {
-        const response = await fetch(url);
-        const blob = await response.blob();
-        await db.put('images', blob, url);
-      };
-      // set this image as the current image
-      setImage(img);
     });
   };
 
@@ -187,8 +160,8 @@ const Slideshow = (
   }
 
   return (
-    <div>
-      { image ? <img ref={ref} src={image?.src} alt="Drone Feed" width={"100%"} height={"auto"}/> : <CircularProgress /> }
+    <div ref={ref}>
+      <img src={images[currentIndex]} alt="Slideshow" style={{ width: '100%', height: 'auto' }} />
     </div>
   );
 };
@@ -230,7 +203,6 @@ export const DroneFeed = (props: { width: any }) => {
   const [containerName, setContainerName] = React.useState<'key-frames' | 'processed-frames'>('key-frames')
   const [folders, setFolders] = React.useState<any>({})
   const [selectedFolder, setSelectedFolder] = React.useState<string | null>(null);
-
   const videoRef = React.useRef<HTMLImageElement>(null);
 
   // every time dispay changes, set change contianerName
