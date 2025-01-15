@@ -35,8 +35,8 @@ import FileExplorer from "../components/treeview";
 import { openDB } from "idb";
 
 
-const storageAccount = 'leaksandpipeskeyframes';
-const sasToken = 'sv=2022-11-02&ss=bfqt&srt=sco&sp=rwdlacupiytfx&se=2024-11-29T16:37:49Z&st=2024-08-13T08:37:49Z&sip=0.0.0.0-255.255.255.255&spr=https';
+const storageAccount = 'pipelinekeyframes';
+const sasToken = 'sv=2022-11-02&ss=bfqt&srt=sco&sp=rwdlacupiytfx&se=2025-12-31T03:34:51Z&st=2025-01-14T19:34:51Z&sip=0.0.0.0&spr=https,http&sig=pCdUfd2FyUhp8vEfqarYkY2GDEswr35u%2FQWT8Tfjuks%3D';
 const blobServiceUrl = `https://${storageAccount}.blob.core.windows.net`;
 
 const listFolders = async (containerName: string) => {
