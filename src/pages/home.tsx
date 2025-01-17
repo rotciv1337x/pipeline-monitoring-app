@@ -36,7 +36,7 @@ import { openDB } from "idb";
 
 
 const storageAccount = 'pipelinekeyframes';
-const sasToken = 'sv=2022-11-02&ss=bfqt&srt=sco&sp=rwdlacupiytfx&se=2025-12-31T03:34:51Z&st=2025-01-14T19:34:51Z&sip=0.0.0.0&spr=https,http&sig=pCdUfd2FyUhp8vEfqarYkY2GDEswr35u%2FQWT8Tfjuks%3D';
+const sasToken = 'sv=2022-11-02&ss=bfqt&srt=sco&sp=rwdlacupiytfx&se=2025-12-31T22:59:59Z&st=2024-12-31T23:00:01Z&sip=0.0.0.0-255.255.255.255&spr=https,http&sig=sDL6N29rJLdAiGKqvYGznBzy1JjvR76DrRArXZWBja4%3D';
 const blobServiceUrl = `https://${storageAccount}.blob.core.windows.net`;
 
 const listFolders = async (containerName: string) => {
