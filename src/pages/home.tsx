@@ -97,7 +97,7 @@ const Slideshow = (
     const day = currentDate.getDate();
   
     // Construct the path dynamically
-    const path = selected ? `key-frames/${selected.replaceAll('.','/')}` : `key-frames/${year}/${month}/${day}/`;
+    const path = selected ? `keyframes/${selected.replaceAll('.','/')}` : `keyframes/${year}/${month}/${day}/`;
   
     const imageUrls: string[] = [];
     const fetchImages = async () => {
@@ -227,7 +227,7 @@ export const DroneFeed = (props: { width: any }) => {
   const [play, setPlay] = React.useState(true);
   const [openDrawer, setOpenDrawer] = React.useState(false);
   const [display, setDisplay] = React.useState<'live' | 'analyzed'>('live');
-  const [containerName, setContainerName] = React.useState<'key-frames' | 'processed-frames'>('key-frames')
+  const [containerName, setContainerName] = React.useState<'keyframes' | 'processedframes'>('keyframes')
   const [folders, setFolders] = React.useState<any>({})
   const [selectedFolder, setSelectedFolder] = React.useState<string | null>(null);
 
@@ -235,8 +235,8 @@ export const DroneFeed = (props: { width: any }) => {
 
   // every time dispay changes, set change contianerName
   React.useEffect(()=> {
-    if(display === 'live') setContainerName('key-frames')
-    else setContainerName('processed-frames')
+    if(display === 'live') setContainerName('keyframes')
+    else setContainerName('processedframes')
   }, [display])
 
   // // Play/Pause the video based on the play state
@@ -448,7 +448,7 @@ export const DroneFeed = (props: { width: any }) => {
       >
         <Typography variant="h4" color="primary">History</Typography>
        {
-        folders['key-frames'] ? <FileExplorer folders={folders} setSelected={setSelectedFolder} /> : <CircularProgress />
+        folders['keyframes'] ? <FileExplorer folders={folders} setSelected={setSelectedFolder} /> : <CircularProgress />
        }
       </Grid>
     </Grid>
